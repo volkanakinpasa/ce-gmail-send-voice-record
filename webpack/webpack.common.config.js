@@ -1,6 +1,7 @@
 const path = require('path');
 // const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 // const WriteFilePlugin = require('write-file-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 const output = {
   filename: '[name].js',
@@ -39,6 +40,11 @@ const config = {
         loader: 'html-loader',
         exclude: /node_modules/,
       },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: ['babel-loader'],
+      },
       // {
       //   test: /\.(ts|tsx)$/,
       //   loader: 'ts-loader',
@@ -47,9 +53,47 @@ const config = {
     ],
   },
   resolve: {
-    extensions: ['*', '.tsx', '.ts', '.js', '.css'],
+    extensions: ['*', '.jsx', '.js', '.css'],
   },
   plugins: [
+    new CopyPlugin({
+      patterns: [
+        // {
+        //   from: 'src/resources/128.png',
+        //   to: 'resources/128.png',
+        // },
+        // {
+        //   from: 'src/resources/microphone.svg',
+        //   to: 'resources/microphone.svg',
+        // },
+        // {
+        //   from: 'src/resources/oauth.json',
+        //   to: 'resources/oauth.json',
+        // },
+        // {
+        //   from: 'src/resources/pi.js',
+        //   to: 'resources/pi.js',
+        // },
+
+        // {
+        //   from: 'src/resources/inboxsdk.js',
+        //   to: 'resources/inboxsdk.js',
+        // },
+        // {
+        //   from: 'src/resources/jquery.js',
+        //   to: 'resources/jquery.js',
+        // },
+
+        {
+          from: 'src/resources',
+          to: 'resources',
+        },
+        {
+          from: 'src/manifest.json',
+          to: 'manifest.json',
+        },
+      ],
+    }),
     // // expose and write the allowed env vars on the compiled bundle
     // new ProgressBarPlugin(),
     // new CleanWebpackPlugin(),
