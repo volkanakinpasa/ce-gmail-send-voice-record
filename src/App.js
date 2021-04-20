@@ -1,57 +1,87 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import useTimer from 'easytimer-react-hook';
-import { timerUtils } from './utils/index';
+import { timerUtils, audioUtils } from './utils/index';
 
 import './app.css';
 
 const App = (props) => {
   const { composeId } = props;
-  const [showRecordContainer, setShowRecordContainer] = useState(false);
-  // const [showPlayContainer, setShowPlayContainer] = useState(false);
-  const [timer, isTargetAchieved] = useTimer({
-    /* Hook configuration */
-  });
 
-  const [composeView, setComposeView] = useState(null);
+  const [showRecordContainer, setShowRecordContainer] = useState(false);
+  const [showPlayContainer, setShowPlayContainer] = useState(false);
+  const [timer, isTargetAchieved] = useTimer({});
+  const [stream, setStream] = useState(null);
+  const [blobUrl, setBlobUrl] = useState(null);
+  const [timeValue, setTimeValues] = useState(null);
+  const refAudio = useRef(null);
 
   const startRecording = () => {
+    //todo: add try, catch and hide, destroy all.
+    setShowRecordContainer(true);
+    audioUtils.start();
     if (!timer.isRunning()) {
       timer.start();
-      setShowRecordContainer(true);
     } else {
       timer.reset();
     }
   };
 
-  const pauseRecording = (e) => {
-    timer.pause();
-  };
-  const stopRecording = (e) => {
-    timer.stop();
+  const destroy = () => {
+    setShowRecordContainer(false);
+    setShowPlayContainer(false);
+    setStream(null);
+    setBlobUrl(null);
+    setTimeValues(null);
   };
 
   const cancelRecording = (e) => {
-    stopRecording(e);
-    setShowRecordContainer(false);
+    timer.stop();
+    audioUtils.stop();
+    destroy();
+  };
+
+  const cancelAttaching = (e) => {
+    destroy();
   };
 
   const finishRecording = (e) => {
-    pauseRecording(e);
+    timer.pause();
+    audioUtils.stop();
     const recordedTime = timer.getTimeValues();
-    chrome.runtime.sendMessage({
-      type: 'attachRecording',
-      data: { recordedTime, composeView, composeId },
-    });
-    setShowRecordContainer(false);
+    timer.stop();
+    setTimeout(() => {
+      const c = audioUtils.getChunk();
+      // setChunk(c);
+      const s = audioUtils.getStream();
+      // console.log({ s });
+      setStream(s);
+      const b = new Blob(c);
+      const bUrl = URL.createObjectURL(b);
+      // setBlob(b);
+      setBlobUrl(bUrl);
+
+      // console.log({ bUrl, b });
+
+      setShowRecordContainer(false);
+      setShowPlayContainer(true);
+    }, 1000);
   };
 
-  timer.addEventListener('started', (t) => {
-    console.log({ started: 1, t: t.detail.timer.getTimeValues() });
-  });
+  const attach = () => {
+    chrome.runtime.sendMessage({
+      type: 'attachRecording',
+      data: { composeId, blobUrl },
+    });
+    destroy();
+  };
 
-  timer.addEventListener('paused', (t) => {
-    console.log({ paused: 1, t: t.detail.timer.getTimeValues() });
-  });
+  // timer.addEventListener('started', (t) => {
+  //   // console.log({ started: 1, t: t.detail.timer.getTimeValues() });
+  // });
+
+  // timer.addEventListener('paused', (t) => {
+  //   // console.log({ paused: 1, t: t.detail.timer.getTimeValues() });
+  // });
 
   useEffect(() => {
     chrome.runtime.onMessage.addListener(function (message) {
@@ -59,105 +89,94 @@ const App = (props) => {
         message.type === 'startRecording' &&
         message.data.composeId === composeId
       ) {
-        setComposeView(message.data.composeView);
+        // setComposeView(message.data.composeView);
         startRecording();
       }
     });
+    setShowRecordContainer(true);
   }, []);
 
   return (
     <>
       {showRecordContainer && (
-        <div className='gmail-send-voice-record gv-flex'>
-          <img
-            src={chrome.runtime.getURL('resources/microphone.svg')}
-            title='Recording'
-            className='gv-icon'
-          />
-          <div>{timerUtils.timerToString(timer)}</div>
-
-          {/* <button
-            onClick={(e) => {
-              startRecording(e);
-            }}
-            className='gv-btn gv-timer-btn'
-          >
-            start
-          </button> */}
-
-          <button
-            onClick={(e) => {
-              cancelRecording(e);
-            }}
-            className='gv-btn gv-timer-btn'
-          >
+        <div className='flex gmail-send-voice-record flex items-center justify-between'>
+          <div className='flex items-center justify-between h-full'>
             <img
-              src={chrome.runtime.getURL('resources/delete.svg')}
-              title='Delete'
+              src={chrome.runtime.getURL('resources/microphone.svg')}
+              title='Recording'
               className='gv-icon'
             />
-          </button>
+            <div>{timerUtils.timerToString(timer)}</div>
+          </div>
+          <div className='flex items-center justify-between h-full'>
+            <button
+              onClick={(e) => {
+                cancelRecording(e);
+              }}
+              className='gv-btn gv-timer-btn'
+            >
+              <img
+                src={chrome.runtime.getURL('resources/delete.svg')}
+                title='Delete'
+                className='gv-icon'
+              />
+            </button>
 
-          <button
-            onClick={(e) => {
-              finishRecording(e);
-            }}
-            className='gv-btn gv-timer-btn'
-          >
-            <img
-              src={chrome.runtime.getURL('resources/done.svg')}
-              title='Attach this'
-              className='gv-icon'
-            />
-          </button>
+            <button
+              onClick={(e) => {
+                finishRecording(e);
+              }}
+              className='gv-btn gv-timer-btn'
+            >
+              <img
+                src={chrome.runtime.getURL('resources/done.svg')}
+                title='Done'
+                className='gv-icon'
+              />
+            </button>
+          </div>
         </div>
       )}
-      {/* {!showRecordContainer && showPlayContainer && (
+      {!showRecordContainer && showPlayContainer && (
         <>
-          <div className='gmail-send-voice-play gv-flex'>
-            <div>
-              <img
-                src={chrome.runtime.getURL('resources/play.svg')}
-                title='Play'
-                className='gv-play-icon'
-              />
-              <img
-                src={chrome.runtime.getURL('resources/pause.svg')}
-                title='Playing'
-                className='gv-pause-icon'
-              />
-            </div>
-            <div>{`${timer.getTimeValues().minutes}:${
-              timer.getTimeValues().seconds
-            }`}</div>
-            <div>
+          {stream && (
+            <div className='gmail-send-voice-record flex items-center justify-between'>
+              <audio
+                ref={refAudio}
+                controls
+                preload='metadata'
+                src={blobUrl}
+              ></audio>
+
               <button
                 onClick={(e) => {
-                  deleteRecord(e);
+                  cancelAttaching(e);
                 }}
+                className='gv-btn gv-timer-btn'
               >
                 <img
                   src={chrome.runtime.getURL('resources/delete.svg')}
                   title='Delete'
-                  className='gv-delete-icon'
+                  className='gv-icon'
                 />
               </button>
 
               <button
                 onClick={(e) => {
-                  attachRecording(e);
+                  attach(e);
                 }}
+                className='gv-btn gv-timer-btn'
               >
                 <img
                   src={chrome.runtime.getURL('resources/done.svg')}
                   title='Attach this'
-                  className='gv-done-icon'
+                  className='gv-icon'
                 />
               </button>
             </div>
-          </div>
+          )}
         </>
-      )} */}
+      )}
     </>
   );
 };
