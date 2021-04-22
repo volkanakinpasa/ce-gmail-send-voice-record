@@ -12,10 +12,12 @@
       "run_at": "document_idle"
     }
   ],
-  "background": { "scripts": ["background.bundle.js"] },
+  "background": {
+    "scripts": ["resources/recorder.js", "background.bundle.js"]
+  },
   "icons": {
     "128": "resources/128.png"
   },
   "web_accessible_resources": ["resources/*"],
-  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'; worker-src * data: 'unsafe-eval' 'unsafe-inline' blob:"
 }

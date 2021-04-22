@@ -3,6 +3,7 @@ import { render } from 'react-dom';
 import App from './App';
 import './resources/jquery';
 import './resources/inboxsdk';
+import './resources/recorder';
 import audioUtils from './utils/audioUtils';
 
 import {
@@ -35,6 +36,15 @@ const loadInboxSDK = () => {
         $(voxBoxButtonElement).append(popup);
         initRecordingReactApp();
       };
+      const createIframe = () => {
+        var iframe = document.createElement('iframe');
+        iframe.setAttribute('allow', 'microphone *');
+        iframe.src = chrome.extension.getURL(
+          'resources/record-iframe/index.html'
+        );
+        $(voxBoxButtonElement).append(iframe);
+        // initRecordingReactApp();
+      };
 
       composeView.addButton({
         title: 'Record Voice',
@@ -49,7 +59,7 @@ const loadInboxSDK = () => {
       });
 
       voxBoxButtonElement = $(element).find('.aDh');
-      createDiv();
+      createIframe();
 
       chrome.runtime.onMessage.addListener(function (message) {
         if (

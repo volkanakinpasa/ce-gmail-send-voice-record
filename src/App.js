@@ -13,6 +13,7 @@ const App = (props) => {
   const [stream, setStream] = useState(null);
   const [blobUrl, setBlobUrl] = useState(null);
   const [timeValue, setTimeValues] = useState(null);
+  const [rec, setRec] = useState(null);
   // const refAudio = useRef(null);
 
   const killRecording = async () => {
@@ -21,17 +22,18 @@ const App = (props) => {
   const startRecording = async () => {
     // todo: add try, catch and hide, destroy all.
 
-    const starData = await audioUtils.start();
-    if (starData && starData.error) {
-      alert(starData.error.message);
-      return;
-    }
-    setShowRecordContainer(true);
-    if (!timer.isRunning()) {
-      timer.start();
-    } else {
-      timer.reset();
-    }
+    const recStart = await audioUtils.start();
+    setRec(recStart);
+    // if (starData && starData.error) {
+    //   alert(starData.error.message);
+    //   return;
+    // }
+    // setShowRecordContainer(true);
+    // if (!timer.isRunning()) {
+    //   timer.start();
+    // } else {
+    //   timer.reset();
+    // }
   };
 
   const destroy = () => {
@@ -52,9 +54,12 @@ const App = (props) => {
     destroy();
   };
 
-  const finishRecording = (e) => {
+  const finishRecording = async (e) => {
     timer.pause();
-    audioUtils.stop();
+    const blob = await audioUtils.stop(rec);
+    console.log('finishRecording', blob);
+    // setBlob(blob)
+
     const recordedTime = timer.getTimeValues();
     timer.stop();
     setTimeout(() => {
