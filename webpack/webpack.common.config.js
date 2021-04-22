@@ -1,10 +1,9 @@
 const path = require('path');
-// const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-// const WriteFilePlugin = require('write-file-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const ProgressBarPlugin = require('progress-bar-webpack-plugin');
 
 const output = {
-  filename: '[name].js',
+  filename: '[name].bundle.js',
   path: path.join(__dirname, '..', 'dist'),
 };
 
@@ -56,6 +55,7 @@ const config = {
     extensions: ['*', '.jsx', '.js', '.css'],
   },
   plugins: [
+    new ProgressBarPlugin(),
     new CopyPlugin({
       patterns: [
         // {

@@ -1,10 +1,10 @@
 {
   "manifest_version": 2,
-  "name": "Gmail send voice record",
-  "short_name": "Gmail Voice Record",
+  "name": "VoxBox - Gmail Send Voice Record",
+  "short_name": "VoxBox - Gmail Send Voice Record",
   "description": "",
   "version": "0.0.1",
-  "permissions": ["activeTab", "tabs", "activeTab", "storage"],
+  "permissions": ["tabs", "activeTab", "storage"],
   "content_scripts": [
     {
       "matches": ["*://mail.google.com/*", "*://inbox.google.com/*"],

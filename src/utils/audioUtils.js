@@ -1,8 +1,11 @@
+import { ATTACHMENT_NAME_PREFIX, ATTACHMENT_NAME_EXTENSION } from './contants';
+
 var recordedChunks = [];
 var stream = null;
 var mediaRecorder = null;
 
 const reset = async () => {
+  stop();
   recordedChunks = [];
 
   return new Promise((resolve, reject) => {
@@ -35,17 +38,34 @@ const getStream = () => {
 };
 
 const start = async () => {
-  stream = await reset();
-  // var options = { mimeType: 'audio/webm;codecs=opus' };
-  mediaRecorder = new MediaRecorder(stream, {});
-  mediaRecorder.ondataavailable = handleDataAvailable;
-  mediaRecorder.start();
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (mediaRecorder && mediaRecorder.state === 'recording')
+        resolve({ error: { message: 'Recording is already working' } });
+
+      stream = await reset();
+      // var options = { mimeType: 'audio/webm;codecs=opus' };
+      mediaRecorder = new MediaRecorder(stream, {});
+      mediaRecorder.ondataavailable = handleDataAvailable;
+      mediaRecorder.start();
+      resolve();
+    } catch {
+      console.log('cannot start recording');
+      reject();
+    }
+  });
 };
 
 const stop = () => {
-  mediaRecorder.stop();
-  stream.getTracks().forEach((track) => track.stop());
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+
+  if (stream) stream.getTracks().forEach((track) => track.stop());
 };
 
-const audioUtils = { getChunk, getStream, start, stop };
+const generateVoieFileName = () => {
+  const dateIsoNAme = new Date().toISOString();
+  return `${ATTACHMENT_NAME_PREFIX}${dateIsoNAme}${ATTACHMENT_NAME_EXTENSION}`;
+};
+
+const audioUtils = { getChunk, getStream, start, stop, generateVoieFileName };
 export default audioUtils;

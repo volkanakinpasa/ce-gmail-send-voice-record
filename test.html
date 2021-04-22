@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <canvas style="width: 500px; height: 500px"></canvas>
+    <script>
+      var canvas = document.querySelector('canvas');
+
+      // Optional frames per second argument.
+      var stream = canvas.captureStream(25);
+      var recordedChunks = [];
+
+      console.log(stream);
+      var options = { mimeType: 'video/webm; codecs=vp9' };
+      mediaRecorder = new MediaRecorder(stream, options);
+
+      mediaRecorder.ondataavailable = handleDataAvailable;
+      mediaRecorder.start();
+
+      function handleDataAvailable(event) {
+        console.log('data-available');
+        if (event.data.size > 0) {
+          recordedChunks.push(event.data);
+          console.log(recordedChunks);
+          download();
+        } else {
+          // ...
+        }
+      }
+      function download() {
+        var blob = new Blob(recordedChunks, {
+          type: 'video/webm',
+        });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        document.body.appendChild(a);
+
+        a.href = url;
+        a.download = 'test.webm';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      }
+
+      // demo: to download after 9sec
+      setTimeout((event) => {
+        console.log('stopping');
+        mediaRecorder.stop();
+      }, 9000);
+    </script>
+  </body>
+</html>

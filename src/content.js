@@ -3,57 +3,52 @@ import { render } from 'react-dom';
 import App from './App';
 import './resources/jquery';
 import './resources/inboxsdk';
+import audioUtils from './utils/audioUtils';
 
-const containerName = 'gmail-send-voice-record';
+import {
+  ATTACHMENT_NAME_PREFIX,
+  ATTACHMENT_NAME_EXTENSION,
+} from './utils/contants';
+
+const popupId = 'gmail-voxbox-popup';
+const voxBoxSignatureClassName = 'voxbox_signature';
 const getVoxBoxSignature = () => {
-  return `<a href="123" target="_blank">Email with voice</a><br/>
+  return `<a class="${voxBoxSignatureClassName}" href="123" target="_blank">Email with voice</a><br/>
 <a href="123" target="_blank">Download VoxBox extension</a>`;
 };
 
 const loadInboxSDK = () => {
   InboxSDK.load(2, 'sdk_AutoShowFields_7f106636c4').then((sdk) => {
     sdk.Compose.registerComposeViewHandler(async (composeView) => {
-      const attachmentNamePrefix = 'VoxBox_';
-      const attachmentNameExtension = '.webm';
       const composeId = new Date().getTime();
-      let container = null;
+      let popup = null;
       const element = composeView.getElement();
-      let buttonElement = null;
+      let voxBoxButtonElement = null;
 
       const initRecordingReactApp = () => {
-        render(
-          <App
-            composeId={composeId}
-            attachChunk={(recordedTime, composeId, chunk) => {
-              attachChunk({ recordedTime, composeId, chunk });
-            }}
-          />,
-          container,
-          function () {}
-        );
+        render(<App composeId={composeId} />, popup, function () {});
       };
 
       const createDiv = () => {
-        container = window.document.createElement('div');
-        container.id = containerName;
-        $(buttonElement).append(container);
+        popup = window.document.createElement('div');
+        popup.id = popupId;
+        $(voxBoxButtonElement).append(popup);
         initRecordingReactApp();
       };
 
       composeView.addButton({
         title: 'Record Voice',
-        iconClass: 'gmail-send-voice-record-icon',
-        iconUrl: chrome.runtime.getURL('resources/microphone.svg'),
+        iconClass: 'gmail-voxbox-button',
+        iconUrl: chrome.runtime.getURL('resources/record.png'),
         onClick: function (event) {
           chrome.runtime.sendMessage({
             type: 'startRecording',
-            data: { composeView, composeId },
+            data: { composeId },
           });
         },
       });
 
-      buttonElement = $(element).find('.inboxsdk__compose_actionToolbar');
-      // console.log({ buttonDiv });
+      voxBoxButtonElement = $(element).find('.aDh');
       createDiv();
 
       chrome.runtime.onMessage.addListener(function (message) {
@@ -68,43 +63,67 @@ const loadInboxSDK = () => {
       const attachRecording = async (data) => {
         const blobUrl = data.blobUrl;
         let blob = await fetch(blobUrl).then((r) => r.blob());
-        // console.log('inside content.js', { blobUrl, blob });
-        const dateIsoNAme = new Date().toISOString();
-        // const blob = new Blob(chunk);
-        blob.name = `${attachmentNamePrefix}${dateIsoNAme}${attachmentNameExtension}`;
+
+        blob.name = audioUtils.generateVoieFileName();
         composeView.attachFiles([blob]);
       };
 
       composeView.on('presending', (e) => {
-        //todo: send message and kill stream
         try {
-          $(element)
-            .find('.vI')
-            .each((i, val) => {
-              const text = $(val).text();
-              if (
-                text.startsWith(attachmentNamePrefix) &&
-                text.endsWith(attachmentNameExtension)
-              ) {
-                let html = composeView.getHTMLContent();
-                html =
-                  html +
-                  `
-                <br />
-                ${getVoxBoxSignature()}
-                `;
-                composeView.setBodyHTML(html);
-              }
-            });
-        } catch (err) {}
+          const listRecipients = Array.prototype.concat(
+            composeView.getToRecipients(),
+            composeView.getCcRecipients(),
+            composeView.getBccRecipients()
+          );
+          if (listRecipients && listRecipients.length > 0)
+            $(element)
+              .find('.vI')
+              .each((i, val) => {
+                const text = $(val).text();
+                if (
+                  text.startsWith(ATTACHMENT_NAME_PREFIX) &&
+                  text.endsWith(ATTACHMENT_NAME_EXTENSION)
+                ) {
+                  const bodyElement = composeView.getBodyElement();
+                  const signature = $(bodyElement).find(
+                    `.${voxBoxSignatureClassName}`
+                  );
+                  console.log(signature);
+                  if (!signature) {
+                    let html = composeView.getHTMLContent();
+
+                    html =
+                      html +
+                      `
+                    <br />
+                    ${getVoxBoxSignature()}
+                    `;
+                    composeView.setBodyHTML(html);
+                  }
+                }
+              });
+        } catch (err) {
+          console.log('cannot add signature of VoxBox', err);
+        }
+
+        chrome.runtime.sendMessage({
+          type: 'killRecording',
+          data: { composeId },
+        });
       });
 
       composeView.on('discard', () => {
-        //todo: send message and kill stream
+        chrome.runtime.sendMessage({
+          type: 'killRecording',
+          data: { composeView, composeId },
+        });
       });
 
       composeView.on('destroy', () => {
-        //todo: send message and kill stream
+        chrome.runtime.sendMessage({
+          type: 'killRecording',
+          data: { composeView, composeId },
+        });
       });
     });
   });

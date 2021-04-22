@@ -2,7 +2,7 @@
   position: absolute;
   bottom: 111px;
   left: 0;
-  width: 155px;
+  width: 230px;
   overflow: hidden;
   height: 20px;
   z-index: 999;
@@ -16,8 +16,12 @@
 }
 
 .gmail-send-voice-record audio {
-  width: 100px;
+  width: 142px;
   height: 100%;
+}
+
+.gmail-send-voice-record audio::-internal-media-controls-download-button {
+  display: none;
 }
 
 .gv-icon {
