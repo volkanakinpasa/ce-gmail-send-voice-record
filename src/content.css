@@ -1,0 +1,21 @@
+.gmail-send-voice-record {
+  position: absolute;
+  bottom: 111px;
+  left: 0;
+  z-index: 999;
+  background-color: white;
+}
+
+.gmail-send-voice-record-iframe {
+  width: 230px;
+  overflow: hidden;
+  height: 27px;
+  z-index: 999;
+  padding: 7px;
+  margin: 0px;
+  font-size: 0.8em;
+  background-color: white;
+
+  box-shadow: rgb(87 87 87 / 48%) 0px 3px 4px 0px,
+    rgb(109 109 109 / 6%) 0px -3px 8px 5px;
+}

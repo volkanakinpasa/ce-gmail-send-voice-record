@@ -1,6 +1,7 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 const ProgressBarPlugin = require('progress-bar-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const output = {
   filename: '[name].bundle.js',
@@ -11,6 +12,7 @@ const config = {
   entry: {
     background: path.join(__dirname, '..', 'src', 'background.js'),
     content: path.join(__dirname, '..', 'src', 'content.js'),
+    record: path.join(__dirname, '..', 'src', 'record', 'index.js'),
   },
   target: 'web',
   output,
@@ -56,6 +58,11 @@ const config = {
   },
   plugins: [
     new ProgressBarPlugin(),
+    new HtmlWebpackPlugin({
+      template: path.join(__dirname, '..', 'src', 'record', 'record.html'),
+      filename: 'record.html',
+      chunks: ['record'],
+    }),
     new CopyPlugin({
       patterns: [
         // {
@@ -86,7 +93,7 @@ const config = {
 
         {
           from: 'src/resources',
-          to: 'resources',
+          to: '',
         },
         {
           from: 'src/manifest.json',

@@ -2301,9 +2301,7 @@
               }
 
               return (0,
-              _loadScript[
-                'default'
-              ])(chrome.runtime.getURL('resources/pi.js'), {
+              _loadScript['default'])(chrome.runtime.getURL('pi.js'), {
                 nowrap: true,
                 // platform-implementation has no top-level vars so no need for function wrapping
                 disableSourceMappingURL: disableSourceMappingURL,

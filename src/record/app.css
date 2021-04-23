@@ -1,0 +1,95 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+audio {
+  width: 142px;
+  height: 25px;
+}
+
+.relative {
+  position: relative;
+}
+
+.gv-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.animated-icon {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* .animated-icon-a {
+  animation: animA 1s infinite alternate;
+} */
+
+.animated-icon-b {
+  animation: animB 0.5s infinite alternate;
+}
+
+@keyframes animA {
+  0%,
+  25% {
+    opacity: 0;
+    z-index: 0;
+  }
+  /* 50% {
+    opacity: 0.5;
+  } */
+
+  100% {
+    opacity: 1;
+    z-index: 1;
+  }
+}
+
+@keyframes animB {
+  0%,
+  25% {
+    opacity: 1;
+    z-index: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    z-index: 0;
+  }
+}
+
+.gv-btn {
+  cursor: pointer;
+}
+
+.gv-timer-btn {
+  height: 100%;
+  width: auto;
+  background: none;
+  border: none;
+}
+
+.flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.w-1\/2 {
+  width: 50%;
+}

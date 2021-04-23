@@ -112,6 +112,13 @@ function stopRecording() {
   //create the wav blob and pass it on to createDownloadLink
   rec.exportWAV(createDownloadLink);
 }
+function attach() {
+  // alert('attach');
+  // chrome.runtime.sendMessage({
+  //   type: 'attachRecording',
+  //   data: { blobUrl: url },
+  // });
+}
 
 function createDownloadLink(blob) {
   var url = URL.createObjectURL(blob);
@@ -127,8 +134,15 @@ function createDownloadLink(blob) {
   au.src = url;
 
   //save to disk link
-  link.href = url;
-  link.download = filename + '.wav'; //download forces the browser to donwload the file using the  filename
+  // link.href = url;
+  link.href = 'javacript:attach()';
+  link.addEventListener('click', () => {
+    // chrome.runtime.sendMessage({
+    //   type: 'attachRecording',
+    //   data: { blobUrl: url },
+    // });
+  });
+  // link.download = filename + '.wav'; //download forces the browser to donwload the file using the  filename
   link.innerHTML = 'Save to disk';
 
   //add the new audio element to li
@@ -145,16 +159,20 @@ function createDownloadLink(blob) {
   upload.href = '#';
   upload.innerHTML = 'Upload';
   upload.addEventListener('click', function (event) {
-    var xhr = new XMLHttpRequest();
-    xhr.onload = function (e) {
-      if (this.readyState === 4) {
-        console.log('Server returned: ', e.target.responseText);
-      }
-    };
-    var fd = new FormData();
-    fd.append('audio_data', blob, filename);
-    xhr.open('POST', 'upload.php', true);
-    xhr.send(fd);
+    chrome.runtime.sendMessage({
+      type: 'attachRecording',
+      data: { blobUrl: url },
+    });
+    // var xhr = new XMLHttpRequest();
+    // xhr.onload = function (e) {
+    //   if (this.readyState === 4) {
+    //     console.log('Server returned: ', e.target.responseText);
+    //   }
+    // };
+    // var fd = new FormData();
+    // fd.append('audio_data', blob, filename);
+    // xhr.open('POST', 'upload.php', true);
+    // xhr.send(fd);
   });
   li.appendChild(document.createTextNode(' ')); //add a space in between
   li.appendChild(upload); //add the upload link to li

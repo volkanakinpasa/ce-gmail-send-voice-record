@@ -82720,7 +82720,7 @@
                             (e.next = 2),
                             (0, q.default)({
                               url: chrome.runtime.getURL(
-                                'resources/oauth.json'
+                                'oauth.json'
                               ),
                               XMLHttpRequest: (0, G.getXMLHttpRequest)(),
                             })

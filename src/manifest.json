@@ -1,10 +1,10 @@
 {
   "manifest_version": 2,
-  "name": "VoxBox - Gmail Send Voice Record",
-  "short_name": "VoxBox - Gmail Send Voice Record",
+  "name": "VOXBOX - emails with voice",
+  "short_name": "VOXBOX - emails with voice",
   "description": "",
   "version": "0.0.1",
-  "permissions": ["tabs", "activeTab", "storage"],
+  "permissions": ["activeTab"],
   "content_scripts": [
     {
       "matches": ["*://mail.google.com/*", "*://inbox.google.com/*"],
@@ -13,11 +13,11 @@
     }
   ],
   "background": {
-    "scripts": ["resources/recorder.js", "background.bundle.js"]
+    "scripts": ["background.bundle.js"]
   },
   "icons": {
-    "128": "resources/128.png"
+    "128": "128.png"
   },
-  "web_accessible_resources": ["resources/*"],
-  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'; worker-src * data: 'unsafe-eval' 'unsafe-inline' blob:"
+  "web_accessible_resources": ["*"],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';"
 }

@@ -23,7 +23,11 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         chrome.tabs.sendMessage(tabs[0].id, message);
       });
       break;
-    case 'killRecording':
+    // case 'killRecording':
+    //   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    //     chrome.tabs.sendMessage(tabs[0].id, message);
+    //   });
+    case 'deleteRecording':
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         chrome.tabs.sendMessage(tabs[0].id, message);
       });

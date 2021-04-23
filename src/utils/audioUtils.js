@@ -95,8 +95,24 @@ const stop = async (recParam) => {
 };
 
 const generateVoieFileName = () => {
-  const dateIsoNAme = new Date().toISOString();
-  return `${ATTACHMENT_NAME_PREFIX}${dateIsoNAme}${ATTACHMENT_NAME_EXTENSION}`;
+  const date = new Date();
+  const dateFormat = `${date
+    .getDate()
+    .toString()
+    .padStart(2, '0')}_${date
+    .getUTCMonth()
+    .toString()
+    .padStart(
+      2,
+      '0'
+    )}_${date
+    .getUTCFullYear()
+    .toString()}_${date
+    .getHours()
+    .toString()
+    .padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+
+  return `${ATTACHMENT_NAME_PREFIX}${dateFormat}${ATTACHMENT_NAME_EXTENSION}`;
 };
 
 const audioUtils = { getChunk, getStream, start, stop, generateVoieFileName };

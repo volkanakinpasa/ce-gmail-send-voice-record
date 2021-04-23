@@ -1,51 +1,73 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import useTimer from 'easytimer-react-hook';
-import { timerUtils, audioUtils } from './utils/index';
 
+import { timerUtils } from '../utils/index';
+import './recorder';
 import './app.css';
 
-const App = (props) => {
-  const { composeId } = props;
-
+const Record = (props) => {
   const [showRecordContainer, setShowRecordContainer] = useState(false);
   const [showPlayContainer, setShowPlayContainer] = useState(false);
   const [timer, isTargetAchieved] = useTimer({});
-  const [stream, setStream] = useState(null);
   const [blobUrl, setBlobUrl] = useState(null);
   const [timeValue, setTimeValues] = useState(null);
   const [rec, setRec] = useState(null);
+  const [gumStream, setGumStream] = useState(null);
+  const [composeId, setComposeId] = useState(null);
 
-  const killRecording = async () => {
-    cancelRecording();
-  };
+  function getParameterByName(name, url = window.location.href) {
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+      results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+  }
+
   const startRecording = async () => {
-    // todo: add try, catch and hide, destroy all.
-
-    const recStart = await audioUtils.start();
-    setRec(recStart);
-    // if (starData && starData.error) {
-    //   alert(starData.error.message);
-    //   return;
-    // }
-    // setShowRecordContainer(true);
-    // if (!timer.isRunning()) {
-    //   timer.start();
-    // } else {
-    //   timer.reset();
-    // }
+    setShowRecordContainer(true);
+    var constraints = { audio: true, video: false };
+    navigator.mediaDevices
+      .getUserMedia(constraints)
+      .then(function (stream) {
+        var AudioContext = window.AudioContext || window.webkitAudioContext;
+        var audioContext;
+        audioContext = new AudioContext();
+        setGumStream(stream);
+        const input = audioContext.createMediaStreamSource(stream);
+        const recorder = new Recorder(input, { numChannels: 1 });
+        recorder.record();
+        setRec(recorder);
+        timer.start();
+      })
+      .catch(function (err) {
+        console.log(err);
+      });
   };
 
   const destroy = () => {
+    chrome.runtime.sendMessage({
+      type: 'deleteRecording',
+      data: { composeId },
+    });
+
     setShowRecordContainer(false);
     setShowPlayContainer(false);
-    setStream(null);
+    setGumStream(null);
     setBlobUrl(null);
     setTimeValues(null);
   };
 
   const cancelRecording = () => {
-    audioUtils.stop();
-    timer.stop();
+    try {
+      rec.stop();
+      rec.clear();
+      gumStream.getAudioTracks()[0].stop();
+      setShowRecordContainer(false);
+    } catch (error) {
+      console.log('cancelRecording', error);
+    }
+
     destroy();
   };
 
@@ -55,49 +77,39 @@ const App = (props) => {
 
   const finishRecording = async (e) => {
     timer.pause();
-    const blob = await audioUtils.stop(rec);
-    console.log('finishRecording', blob);
-    // setBlob(blob)
-
-    const recordedTime = timer.getTimeValues();
+    rec.stop();
     timer.stop();
-    setTimeout(() => {
-      const c = audioUtils.getChunk();
+    //stop microphone access
+    gumStream.getAudioTracks()[0].stop();
+    rec.exportWAV(createDownloadLink);
+  };
 
-      const s = audioUtils.getStream();
-
-      setStream(s);
-      const b = new Blob(c, { type: 'audio/mpeg' });
-      const bUrl = URL.createObjectURL(b);
-
-      setBlobUrl(bUrl);
-
-      setShowRecordContainer(false);
-      setShowPlayContainer(true);
-    }, 1000);
+  const createDownloadLink = (blob) => {
+    URL = window.URL || window.webkitURL;
+    var url = URL.createObjectURL(blob);
+    setBlobUrl(url);
+    setShowRecordContainer(false);
+    setShowPlayContainer(true);
   };
 
   const attach = () => {
     chrome.runtime.sendMessage({
       type: 'attachRecording',
-      data: { composeId, blobUrl },
+      data: { blobUrl, composeId },
     });
     destroy();
   };
 
   useEffect(() => {
+    const cId = getParameterByName('composeId');
+    setComposeId(cId);
+
+    startRecording();
+
     chrome.runtime.onMessage.addListener(function (message) {
       switch (message.type) {
         case 'startRecording':
-          if (message.data.composeId === composeId) {
-            startRecording();
-          }
-          break;
-
-        case 'killRecording':
-          if (message.data.composeId === composeId) {
-            killRecording();
-          }
+          startRecording();
           break;
       }
     });
@@ -107,12 +119,19 @@ const App = (props) => {
     <>
       {showRecordContainer && (
         <div className='flex items-center justify-between'>
-          <div className='flex items-center justify-between h-full'>
+          <div className=''>
             <img
-              src={chrome.runtime.getURL('resources/microphone.svg')}
+              src={chrome.runtime.getURL('128.png')}
               title='Recording'
-              className='gv-icon'
+              className='gv-icon animated-icon animated-icon-a'
             />
+            <img
+              src={chrome.runtime.getURL('128-1.png')}
+              title='Recording'
+              className='gv-icon animated-icon animated-icon-b'
+            />
+          </div>
+          <div className='flex items-center justify-between h-full'>
             <div>{timerUtils.timerToString(timer)}</div>
           </div>
           <div className='flex items-center justify-between h-full'>
@@ -123,7 +142,7 @@ const App = (props) => {
               className='gv-btn gv-timer-btn'
             >
               <img
-                src={chrome.runtime.getURL('resources/delete.svg')}
+                src={chrome.runtime.getURL('128-cancel.png')}
                 title='Delete'
                 className='gv-icon'
               />
@@ -136,7 +155,7 @@ const App = (props) => {
               className='gv-btn gv-timer-btn'
             >
               <img
-                src={chrome.runtime.getURL('resources/done.svg')}
+                src={chrome.runtime.getURL('128-check.png')}
                 title='Done'
                 className='gv-icon'
               />
@@ -146,10 +165,15 @@ const App = (props) => {
       )}
       {!showRecordContainer && showPlayContainer && (
         <>
-          {stream && (
+          {gumStream && (
             <div className='flex items-center justify-between'>
               <div className='flex items-center justify-between h-full'>
-                <audio controls preload='auto' src={blobUrl}>
+                <audio
+                  controls
+                  controlsList='nodownload'
+                  preload='auto'
+                  src={blobUrl}
+                >
                   Your browser does not support the
                   <code>audio</code> element.
                 </audio>
@@ -162,7 +186,7 @@ const App = (props) => {
                   className='gv-btn gv-timer-btn'
                 >
                   <img
-                    src={chrome.runtime.getURL('resources/delete.svg')}
+                    src={chrome.runtime.getURL('128-cancel.png')}
                     title='Delete'
                     className='gv-icon'
                   />
@@ -175,7 +199,7 @@ const App = (props) => {
                   className='gv-btn gv-timer-btn'
                 >
                   <img
-                    src={chrome.runtime.getURL('resources/done.svg')}
+                    src={chrome.runtime.getURL('128-attach.png')}
                     title='Attach this'
                     className='gv-icon'
                   />
@@ -189,4 +213,4 @@ const App = (props) => {
   );
 };
 
-export default App;
+export default Record;
