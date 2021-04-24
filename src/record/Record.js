@@ -41,7 +41,12 @@ const Record = (props) => {
         timer.start();
       })
       .catch(function (err) {
-        console.log(err);
+        destroy();
+
+        console.log('cannot start recording,', err);
+        alert(
+          'Cannot start recording. Please make sure you gave microphone permission'
+        );
       });
   };
 
@@ -103,17 +108,20 @@ const Record = (props) => {
   useEffect(() => {
     const cId = getParameterByName('composeId');
     setComposeId(cId);
-
-    startRecording();
-
-    chrome.runtime.onMessage.addListener(function (message) {
-      switch (message.type) {
-        case 'startRecording':
-          startRecording();
-          break;
-      }
-    });
+    // chrome.runtime.onMessage.addListener(function (message) {
+    //   switch (message.type) {
+    //     case 'startRecording':
+    //       startRecording();
+    //       break;
+    //   }
+    // });
   }, []);
+
+  useEffect(() => {
+    if (composeId) {
+      startRecording();
+    }
+  }, [composeId]);
 
   return (
     <>

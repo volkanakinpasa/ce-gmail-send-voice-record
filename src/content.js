@@ -1,6 +1,5 @@
 import './jquery';
 import './inboxsdk';
-import './recorder';
 import audioUtils from './utils/audioUtils';
 import './content.css';
 import {
@@ -37,6 +36,7 @@ const loadInboxSDK = () => {
 
       const removeIframe = (cId) => {
         if (cId == composeId) $(`#${popup.id}`).html('');
+        else $(popup).html('');
       };
 
       const createIframe = () => {
@@ -49,7 +49,7 @@ const loadInboxSDK = () => {
           'record.html?composeId=' + composeId
         );
 
-        $(popup).append(iframe);
+        $(popup).html(iframe);
       };
 
       composeView.addButton({
