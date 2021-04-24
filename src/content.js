@@ -1,6 +1,6 @@
-import './resources/jquery';
-import './resources/inboxsdk';
-import './resources/recorder';
+import './jquery';
+import './inboxsdk';
+import './recorder';
 import audioUtils from './utils/audioUtils';
 import './content.css';
 import {
@@ -8,18 +8,18 @@ import {
   ATTACHMENT_NAME_EXTENSION,
 } from './utils/contants';
 
-const voxBoxSignatureClassName = 'voxbox_signature';
-const voxBoxSignatureFirstRow = 'VOXBOX - email with voice';
-
 const extensionId = chrome.runtime.id;
 const extensionUrl = `https://chrome.google.com/webstore/detail/VoxBox/${extensionId}`;
+const voxBoxSignatureClassName = 'voxbox_signature';
+const voxBoxWebSite = 'http://www.voxbox.ai/';
+const voxBoxSignatureFirstRow = `<a href="${voxBoxWebSite}"><strong>VOXBOX</strong></a> - email with voice`;
+
 const getVoxBoxSignature = () => {
-  return `<a class="${voxBoxSignatureClassName}" href="${extensionUrl}" target="_blank">${voxBoxSignatureFirstRow}</a><br/>
-            <a href="${extensionUrl}" target="_blank">Download chrome extension</a>`;
+  return `${voxBoxSignatureFirstRow}<br/><a href="${extensionUrl}" target="_blank">Download FREE chrome extension</a>`;
 };
 
 const loadInboxSDK = () => {
-  InboxSDK.load(2, 'sdk_AutoShowFields_7f106636c4').then((sdk) => {
+  InboxSDK.load(2, 'sdk_VBVBVB_d5a6243996').then((sdk) => {
     sdk.Compose.registerComposeViewHandler(async (composeView) => {
       const composeId = new Date().getTime();
       const popupId = 'gmail-voxbox-popup-' + composeId;
