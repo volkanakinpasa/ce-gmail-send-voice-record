@@ -18,7 +18,7 @@ const getVoxBoxSignature = () => {
 };
 
 const loadInboxSDK = () => {
-  InboxSDK.load(2, 'sdk_VBVBVB_d5a6243996').then((sdk) => {
+  (InboxSDK || window.InboxSDK).load(2, 'sdk_VBVBVB_d5a6243996').then((sdk) => {
     sdk.Compose.registerComposeViewHandler(async (composeView) => {
       const composeId = new Date().getTime();
       const popupId = 'gmail-voxbox-popup-' + composeId;
