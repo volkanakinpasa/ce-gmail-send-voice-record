@@ -1,11 +1,13 @@
 import './jquery';
 import './inboxsdk';
-import audioUtils from './utils/audioUtils';
 import './content.css';
+
 import {
-  ATTACHMENT_NAME_PREFIX,
   ATTACHMENT_NAME_EXTENSION,
+  ATTACHMENT_NAME_PREFIX,
 } from './utils/contants';
+
+import audioUtils from './utils/audioUtils';
 
 const extensionId = chrome.runtime.id;
 const extensionUrl = `https://chrome.google.com/webstore/detail/VoxBox/${extensionId}`;
@@ -24,7 +26,7 @@ const loadInboxSDK = () => {
       const popupId = 'gmail-voxbox-popup-' + composeId;
       let attachedAudioCount = 0;
       let popup = null;
-      const element = composeView.getElement();
+      const composeViewElement = composeView.getElement();
       let voxBoxButtonElement = null;
 
       const createDiv = () => {
@@ -61,7 +63,7 @@ const loadInboxSDK = () => {
         },
       });
 
-      voxBoxButtonElement = $(element).find('.aDh');
+      voxBoxButtonElement = $(composeViewElement).find('.aDh');
       createDiv();
       chrome.runtime.onMessage.addListener(async function (message) {
         if (message.type === 'attachRecording') {
@@ -92,7 +94,7 @@ const loadInboxSDK = () => {
               composeView.getBccRecipients()
             );
             if (listRecipients && listRecipients.length > 0) {
-              $(element)
+              $(composeViewElement)
                 .find('.vI')
                 .each((i, val) => {
                   const text = $(val).text();
